@@ -1,66 +1,114 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Intervals
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Консольное приложение для работы с интервалами в Laravel.
 
-## About Laravel
+## Оглавление
+- [Описание задачи](#описание-задачи)
+- [Требования](#требования)
+- [Установка](#установка)
+- [Использование](#использование)
+- [Структура проекта](#структура-проекта)
+- [Реализация](#реализация)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Описание задачи
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Реализация консольной artisan-команды в Laravel для работы с интервалами.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Задача предполагает создание системы, которая хранит в базе данных числовые интервалы (отрезки и лучи) и позволяет находить те из них, которые пересекаются с заданным интервалом.
 
-## Learning Laravel
+## Требования
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.0 или выше
+- Laravel 8.x или выше
+- MySQL 5.7+ / PostgreSQL 10+ / SQLite 3
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Установка
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. Клонировать репозиторий:
+   ```bash
+   git clone https://github.com/your-username/laravel-intervals.git
+   ```
 
-## Laravel Sponsors
+2. Перейти в директорию проекта:
+   ```bash
+   cd laravel-intervals
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. Установить зависимости:
+   ```bash
+   composer install
+   ```
 
-### Premium Partners
+4. Скопировать файл конфигурации и настроить подключение к базе данных:
+   ```bash
+   cp .env.example .env
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+5. Сгенерировать ключ приложения:
+   ```bash
+   php artisan key:generate
+   ```
 
-## Contributing
+6. Выполнить миграции для создания таблицы intervals:
+   ```bash
+   php artisan migrate
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+7. Заполнить базу данных тестовыми интервалами (10,000 записей):
+   ```bash
+   php artisan db:seed
+   ```
 
-## Code of Conduct
+## Использование
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Для поиска интервалов, пересекающихся с заданным интервалом [N, M], используйте команду:
 
-## Security Vulnerabilities
+```bash
+php artisan intervals:list --left=N --right=M
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Например, чтобы найти все интервалы, пересекающиеся с [15, 30]:
 
-## License
+```bash
+php artisan intervals:list --left=15 --right=30
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Результат будет выведен в виде таблицы:
+
+```
++------+-------+----------+----------+
+| ID   | Start | End      | Type     |
++------+-------+----------+----------+
+| 12   | 10    | 20       | Segment  |
+| 45   | 25    | 40       | Segment  |
+| 78   | 5     | Infinity | Ray      |
+| ...  | ...   | ...      | ...      |
++------+-------+----------+----------+
+```
+
+## Структура проекта
+
+- `app/Models/Interval.php` - модель данных для работы с интервалами
+- `app/Console/Commands/IntervalsList.php` - artisan-команда для вывода интервалов
+- `database/migrations/..._create_intervals_table.php` - миграция для создания таблицы
+- `database/seeders/IntervalsTableSeeder.php` - сидер для заполнения тестовыми данными
+
+## Реализация
+
+### Таблица интервалов
+
+```sql
+CREATE TABLE intervals (
+    id SERIAL PRIMARY KEY,
+    start INTEGER NOT NULL,  -- начало отрезка
+    end INTEGER DEFAULT NULL -- конец отрезка или NULL для луча
+);
+```
+
+### Поиск пересечений
+
+Интервал [a, b] пересекается с интервалом [c, d], если:
+- Для отрезков: a ≤ d И b ≥ c
+- Для лучей (с конечной точкой d = ∞): a ≤ start
+
+В реализации используется оптимизированный SQL-запрос для поиска пересечений с использованием Laravel Query Builder.
