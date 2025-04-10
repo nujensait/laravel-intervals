@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Interval;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +12,7 @@ class IntervalsList extends Command
      *
      * @var string
      */
-    protected $signature = 'intervals:list {--left=* : Left bound of the interval} {--right=* : Right bound of the interval}';
+    protected $signature = 'intervals:list {--left=* : Left bound of the interval} {--right=* : Right bound of the interval}  {--json : Output results as JSON}';
 
     /**
      * The console command description.
@@ -33,23 +32,18 @@ class IntervalsList extends Command
         $right = $this->option('right');
 
         // Проверяем корректность аргументов
-        if (!isset($left[0]) || !isset($right[0])) {
+        if ($left === null || $right === null) {
             $this->error('Both --left and --right parameters are required');
             return 1;
         }
 
-        $left = (int) $left[0];
-        $right = (int) $right[0];
+        $left = (int) $left;
+        $right = (int) $right;
 
         if ($left > $right) {
             $this->error('Left bound should be less than or equal to right bound');
             return 1;
         }
-
-        // Получаем пересекающиеся интервалы используя Query Builder
-        // Условия пересечения:
-        // 1. Для отрезков: start <= right AND end >= left
-        // 2. Для лучей (end IS NULL): start <= right
 
         $intervals = DB::table('intervals')
             ->where(function ($query) use ($left, $right) {
@@ -63,14 +57,28 @@ class IntervalsList extends Command
                             ->whereNull('end');
                     });
             })
+            ->orderBy('id')
             ->get();
+
+        if ($this->option('json')) {
+            $result = $intervals->map(function ($interval) {
+                return [
+                    'id' => $interval->id,
+                    'start' => $interval->start,
+                    'end' => $interval->end,
+                    'type' => $interval->end === null ? 'Ray' : 'Segment'
+                ];
+            });
+
+            $this->line($result->toJson());
+            return 0;
+        }
 
         if ($intervals->isEmpty()) {
             $this->info("No intervals found intersecting with [{$left}, {$right}]");
             return 0;
         }
 
-        // Формируем данные для вывода в виде таблицы
         $headers = ['ID', 'Start', 'End', 'Type'];
         $rows = [];
 
@@ -83,7 +91,6 @@ class IntervalsList extends Command
             ];
         }
 
-        // Выводим таблицу
         $this->table($headers, $rows);
         $this->info(count($rows) . " intervals found intersecting with [{$left}, {$right}]");
 
