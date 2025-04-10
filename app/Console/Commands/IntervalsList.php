@@ -28,12 +28,19 @@ class IntervalsList extends Command
      */
     public function handle()
     {
+        // Изменяем проверку аргументов
         $left = $this->option('left');
         $right = $this->option('right');
 
-        // Проверяем корректность аргументов
+        // Проверяем, были ли переданы аргументы (строгое сравнение с null)
         if ($left === null || $right === null) {
             $this->error('Both --left and --right parameters are required');
+            return 1;
+        }
+
+        // Проверяем, что значения не пустые
+        if ($left === '' || $right === '') {
+            $this->error('Both --left and --right parameters must have values');
             return 1;
         }
 
@@ -74,8 +81,9 @@ class IntervalsList extends Command
             return 0;
         }
 
+        // Изменяем вывод при отсутствии интервалов
         if ($intervals->isEmpty()) {
-            $this->info("No intervals found intersecting with [{$left}, {$right}]");
+            $this->line("No intervals found intersecting with [{$left}, {$right}]"); // Используем line вместо info
             return 0;
         }
 
